@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+Route::namespace('Api')->prefix('v1')->group(function () {
+    Route::get('books/list','BookController@list');
+    Route::get('books/by-id/{id}','BookController@byId');
+    Route::put('books/update','BookController@update');
+    Route::delete('books/{id}','BookController@destroy');
 });

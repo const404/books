@@ -16,3 +16,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Auth::routes();
+
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', 'HomeController@index')->name('home');
+    Route::resource('authors','AuthorController')->except(['show']);
+    Route::resource('books','BookController')->except(['show']);
+});
