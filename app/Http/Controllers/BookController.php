@@ -4,11 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Author;
 use App\Book;
+use App\Http\Requests\BookRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class BookController extends Controller
 {
+
+    protected $book;
+
+    public function __construct(Book $book)
+    {
+        $this->book = $book;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -16,7 +25,7 @@ class BookController extends Controller
      */
     public function index()
     {
-        $books = Book::all()->load('author');
+        $books = $this->book->all()->load('author');
 
         return view('admin.books.index',['books'=>$books]);
     }
@@ -30,8 +39,7 @@ class BookController extends Controller
     {
         $authors = Author::all();
         if($authors->count() == 0) {
-            session()->flush('error','Сначала добавте автора');
-            return redirect()->back();
+            return redirect()->back()->with('error','Сначала добавьте автора');
         }
 
         return view('admin.books.create',['authors'=>$authors]);
@@ -43,21 +51,11 @@ class BookController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(BookRequest $request)
     {
-        $request->validate([
-            'title'=>'required',
-            'author_id'=>'required|integer'
-        ]);
+        $this->book->create($request->validated());
 
-        Book::create([
-            'title'=>$request->title,
-            'author_id'=>$request->author_id
-        ]);
-
-
-        session()->flash('status','Книга успешно создана');
-        return redirect()->route('admin.books.index');
+        return response()->redirectToRoute('admin.books.index')->with('status','Книга успешно создана');
     }
 
     /**
@@ -91,21 +89,11 @@ class BookController extends Controller
      * @param  \App\Book  $book
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Book $book)
+    public function update(BookRequest $request, Book $book)
     {
-        $request->validate([
-            'title'=>'required',
-            'author_id'=>'required|integer'
-        ]);
+        $book->update($request->validated());
 
-        $book->update([
-            'title'=>$request->title,
-            'author_id'=>$request->author_id
-        ]);
-
-
-        session()->flash('status','Книга успешно обновлена');
-        return redirect()->route('admin.books.index');
+        return redirect()->route('admin.books.index')->with('status','Книга успешно обновлена');
     }
 
     /**
@@ -118,7 +106,6 @@ class BookController extends Controller
     {
         $book->delete();
 
-        session()->flash('status','Книга удалена');
-        return redirect()->route('admin.books.index');
+        return redirect()->route('admin.books.index')->with('status','Книга удалена');
     }
 }
